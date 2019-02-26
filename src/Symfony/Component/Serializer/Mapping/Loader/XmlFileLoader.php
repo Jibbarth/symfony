@@ -58,7 +58,6 @@ class XmlFileLoader extends FileLoader
                     $attributeMetadata = new AttributeMetadata($attributeName);
                     $classMetadata->addAttributeMetadata($attributeMetadata);
                 }
-
                 foreach ($attribute->group as $group) {
                     $attributeMetadata->addGroup((string) $group);
                 }
@@ -69,6 +68,10 @@ class XmlFileLoader extends FileLoader
 
                 if (isset($attribute['serialized-name'])) {
                     $attributeMetadata->setSerializedName((string) $attribute['serialized-name']);
+                }
+
+                foreach ($attribute->{'embed-property'} as $embedProperty) {
+                    $attributeMetadata->addEmbedProperty((string) $embedProperty);
                 }
             }
 

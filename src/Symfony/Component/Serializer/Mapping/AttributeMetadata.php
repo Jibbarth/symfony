@@ -50,6 +50,15 @@ class AttributeMetadata implements AttributeMetadataInterface
      */
     public $serializedName;
 
+    /**
+     * @var array|null
+     *
+     * @internal This property is public in order to reduce the size of the
+     *           class' serialized representation. Do not access it. Use
+     *           {@link getEmbedProperties()} instead.
+     */
+    public $embedProperties = [];
+
     public function __construct(string $name)
     {
         $this->name = $name;
@@ -116,6 +125,24 @@ class AttributeMetadata implements AttributeMetadataInterface
     /**
      * {@inheritdoc}
      */
+    public function addEmbedProperty(string $property)
+    {
+        if (!isset($this->embedProperties[$property])) {
+            $this->embedProperties[$property] = true;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getEmbedProperties(): ?array
+    {
+        return $this->embedProperties;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function merge(AttributeMetadataInterface $attributeMetadata)
     {
         foreach ($attributeMetadata->getGroups() as $group) {
@@ -131,6 +158,10 @@ class AttributeMetadata implements AttributeMetadataInterface
         if (null === $this->serializedName) {
             $this->serializedName = $attributeMetadata->getSerializedName();
         }
+
+        foreach (\array_keys($attributeMetadata->getEmbedProperties()) as $property) {
+            $this->addEmbedProperty($property);
+        }
     }
 
     /**
@@ -140,6 +171,6 @@ class AttributeMetadata implements AttributeMetadataInterface
      */
     public function __sleep()
     {
-        return ['name', 'groups', 'maxDepth', 'serializedName'];
+        return ['name', 'groups', 'maxDepth', 'serializedName', 'embedProperties'];
     }
 }

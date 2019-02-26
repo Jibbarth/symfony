@@ -117,6 +117,21 @@ abstract class AbstractObjectNormalizer extends AbstractNormalizer
                 $attributeValue = $callback($attributeValue, $object, $attribute, $format, $context);
             }
 
+            if (isset($attributesMetadata[$attribute]) && ($embedProperties = \array_keys($attributesMetadata[$attribute]->getEmbedProperties()))) {
+                foreach ($embedProperties as $embedProperty) {
+                    // Retrieve all embed properties
+                    $data = $this->updateData(
+                        $data,
+                        $embedProperty,
+                        $this->getAttributeValue($attributeValue, $embedProperty, $format, $context),
+                        \get_class($attributeValue),
+                        $format,
+                        $context
+                    );
+                }
+                continue;
+            }
+
             if (null !== $attributeValue && !is_scalar($attributeValue)) {
                 $stack[$attribute] = $attributeValue;
             }
@@ -261,6 +276,11 @@ abstract class AbstractObjectNormalizer extends AbstractNormalizer
         $reflectionClass = new \ReflectionClass($class);
         $object = $this->instantiateObject($normalizedData, $class, $context, $reflectionClass, $allowedAttributes, $format);
 
+        $attributesMetadata = [];
+        if ($this->classMetadataFactory && $this->classMetadataFactory->hasMetadataFor($class)) {
+            $attributesMetadata = $this->classMetadataFactory->getMetadataFor($class)->getAttributesMetadata();
+        }
+
         foreach ($normalizedData as $attribute => $value) {
             if ($this->nameConverter) {
                 $attribute = $this->nameConverter->denormalize($attribute, $class, $format, $context);
@@ -275,6 +295,18 @@ abstract class AbstractObjectNormalizer extends AbstractNormalizer
             }
 
             $value = $this->validateAndDenormalize($class, $attribute, $value, $format, $context);
+
+            foreach ($attributesMetadata as $currentAttribute => $metadata) {
+                if (!($embedProperties = $metadata->getEmbedProperties()) || !isset($embedProperties[$attribute])) {
+                    continue;
+                }
+
+                $embedProperty = $this->getAttributeValue($object, $currentAttribute, $format, $context);
+                // Add current attribute value in embedProperty object
+                $this->setAttributeValue($embedProperty, $attribute, $value, $format, $context);
+                $value = $embedProperty;
+                $attribute = $currentAttribute;
+            }
             try {
                 $this->setAttributeValue($object, $attribute, $value, $format, $context);
             } catch (InvalidArgumentException $e) {

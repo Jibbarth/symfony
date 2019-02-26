@@ -20,6 +20,7 @@ use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
 use Symfony\Component\Serializer\Tests\Fixtures\AbstractDummy;
 use Symfony\Component\Serializer\Tests\Fixtures\AbstractDummyFirstChild;
 use Symfony\Component\Serializer\Tests\Fixtures\AbstractDummySecondChild;
+use Symfony\Component\Serializer\Tests\Fixtures\EmbedPropertiesDummy;
 use Symfony\Component\Serializer\Tests\Mapping\TestClassMetadataFactory;
 
 /**
@@ -104,5 +105,14 @@ class AnnotationLoaderTest extends TestCase
         $this->loader->loadClassMetadata($classMetadata);
 
         $this->assertEquals(TestClassMetadataFactory::createClassMetadata(true), $classMetadata);
+    }
+
+    public function testLoadEmbedProperties()
+    {
+        $classMetadata = new ClassMetadata(EmbedPropertiesDummy::class);
+        $this->loader->loadClassMetadata($classMetadata);
+
+        $attributesMetadata = $classMetadata->getAttributesMetadata();
+        $this->assertEquals(['bar' => true, 'baz' => true], $attributesMetadata['foo']->getEmbedProperties());
     }
 }

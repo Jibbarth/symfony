@@ -24,3 +24,7 @@
       second: 'Symfony\Component\Serializer\Tests\Fixtures\AbstractDummySecondChild'
   attributes:
     foo: ~
+'Symfony\Component\Serializer\Tests\Fixtures\EmbedPropertiesDummy':
+  attributes:
+    foo:
+      embed_properties: ['bar', 'baz']

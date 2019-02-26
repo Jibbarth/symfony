@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.3.0
+-----
+
+ * Added a `@EmbedProperties` annotation to serialize/deserialize in/from subobject
+
 4.2.0
 -----
 

@@ -68,6 +68,18 @@ interface AttributeMetadataInterface
     public function getSerializedName(): ?string;
 
     /**
+     * Adds this property to embedProperties.
+     *
+     * @param string $embedProperty
+     */
+    public function addEmbedProperty(string $embedProperty);
+
+    /**
+     * Gets the embed properties name for this attribute.
+     */
+    public function getEmbedProperties(): ?array;
+
+    /**
      * Merges an {@see AttributeMetadataInterface} with in the current one.
      */
     public function merge(self $attributeMetadata);
