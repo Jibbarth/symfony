@@ -61,12 +61,7 @@
       ]]></xsd:documentation>
         </xsd:annotation>
         <xsd:sequence minOccurs="0">
-            <xsd:sequence minOccurs="0">
-                <xsd:element name="group" type="xsd:string" maxOccurs="unbounded" />
-            </xsd:sequence>
-            <xsd:sequence minOccurs="0">
-                <xsd:element name="embed-property" type="xsd:string" maxOccurs="unbounded" />
-            </xsd:sequence>
+            <xsd:element name="group" type="xsd:string" maxOccurs="unbounded" />
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required" />
         <xsd:attribute name="max-depth">
@@ -83,7 +78,7 @@
                 </xsd:restriction>
             </xsd:simpleType>
         </xsd:attribute>
-
+        <xsd:attribute name="embedded" type="xsd:boolean" />
     </xsd:complexType>
 
 </xsd:schema>

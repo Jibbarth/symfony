@@ -4,7 +4,7 @@ CHANGELOG
 4.3.0
 -----
 
- * Added a `@EmbedProperties` annotation to serialize/deserialize in/from subobject. Also work with `<embed-property>` nodes in XML and `embed_properties` in Yaml.
+ * Added a `@Embedded` annotation to serialize/deserialize from/in subobject. Also work with `embedded=true` in attribute node in XML and `embedded: true` in Yaml.
 
 4.2.0
 -----

@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Mapping\Loader\YamlFileLoader;
 use Symfony\Component\Serializer\Tests\Fixtures\AbstractDummy;
 use Symfony\Component\Serializer\Tests\Fixtures\AbstractDummyFirstChild;
 use Symfony\Component\Serializer\Tests\Fixtures\AbstractDummySecondChild;
-use Symfony\Component\Serializer\Tests\Fixtures\EmbedPropertiesDummy;
+use Symfony\Component\Serializer\Tests\Fixtures\EmbeddedDummy;
 use Symfony\Component\Serializer\Tests\Mapping\TestClassMetadataFactory;
 
 /**
@@ -109,12 +109,21 @@ class YamlFileLoaderTest extends TestCase
         $this->assertEquals($expected, $classMetadata);
     }
 
-    public function testEmbedProperties()
+    public function testEmbeddedEnabled()
     {
-        $classMetadata = new ClassMetadata(EmbedPropertiesDummy::class);
+        $classMetadata = new ClassMetadata(EmbeddedDummy::class);
         $this->loader->loadClassMetadata($classMetadata);
 
         $attributesMetadata = $classMetadata->getAttributesMetadata();
-        $this->assertEquals(['bar' => true, 'baz' => true], $attributesMetadata['foo']->getEmbedProperties());
+        $this->assertTrue($attributesMetadata['foo']->isEmbedded());
+    }
+
+    public function testEmbeddedDisabled()
+    {
+        $classMetadata = new ClassMetadata(AbstractDummy::class);
+        $this->loader->loadClassMetadata($classMetadata);
+
+        $attributesMetadata = $classMetadata->getAttributesMetadata();
+        $this->assertFalse($attributesMetadata['foo']->isEmbedded());
     }
 }
