@@ -11,16 +11,16 @@
 
 namespace Symfony\Component\Serializer\Tests\Fixtures;
 
-use Symfony\Component\Serializer\Annotation\EmbedProperties;
+use Symfony\Component\Serializer\Annotation\Embedded;
 
 /**
  * @author Jibé Barth <barth.jib@gmail.com>
  */
-class EmbedPropertiesDummy
+class EmbeddedDummy
 {
     /**
-     * @var \Symfony\Component\Serializer\Tests\Fixtures\EmbedPropertiesDummyChild
-     * @EmbedProperties({"bar", "baz"})
+     * @var \Symfony\Component\Serializer\Tests\Fixtures\EmbeddedDummyChild
+     * @Embedded()
      */
     public $foo;
 
@@ -31,6 +31,6 @@ class EmbedPropertiesDummy
 
     public function __construct()
     {
-        $this->foo = new EmbedPropertiesDummyChild();
+        $this->foo = new EmbeddedDummyChild();
     }
 }

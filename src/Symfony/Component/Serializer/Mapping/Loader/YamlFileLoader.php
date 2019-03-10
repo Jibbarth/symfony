@@ -94,18 +94,8 @@ class YamlFileLoader extends FileLoader
                     $attributeMetadata->setSerializedName($data['serialized_name']);
                 }
 
-                if (isset($data['embed_properties'])) {
-                    if (!\is_array($data['embed_properties'])) {
-                        throw new MappingException(sprintf('The "embed_properties" key must be an array of strings in "%s" for the attribute "%s" of the class "%s".', $this->file, $attribute, $classMetadata->getName()));
-                    }
-
-                    foreach ($data['embed_properties'] as $embedProperty) {
-                        if (!\is_string($embedProperty)) {
-                            throw new MappingException(sprintf('EmbedProperty names must be strings in "%s" for the attribute "%s" of the class "%s".', $this->file, $attribute, $classMetadata->getName()));
-                        }
-
-                        $attributeMetadata->addEmbedProperty($embedProperty);
-                    }
+                if (isset($data['embedded']) && $data['embedded'] === true) {
+                    $attributeMetadata->setEmbedded(true);
                 }
             }
         }

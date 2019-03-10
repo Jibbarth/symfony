@@ -14,7 +14,7 @@ namespace Symfony\Component\Serializer\Tests\Fixtures;
 /**
  * @author Jibé Barth <barth.jib@gmail.com>
  */
-class EmbedPropertiesDummyChild
+class EmbeddedDummyChild
 {
     /**
      * @var string

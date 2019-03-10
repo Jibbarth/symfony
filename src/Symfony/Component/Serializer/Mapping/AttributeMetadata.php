@@ -51,13 +51,13 @@ class AttributeMetadata implements AttributeMetadataInterface
     public $serializedName;
 
     /**
-     * @var array|null
+     * @var bool
      *
      * @internal This property is public in order to reduce the size of the
      *           class' serialized representation. Do not access it. Use
-     *           {@link getEmbedProperties()} instead.
+     *           {@link isEmbedded()} instead.
      */
-    public $embedProperties = [];
+    public $embedded = false;
 
     public function __construct(string $name)
     {
@@ -122,22 +122,14 @@ class AttributeMetadata implements AttributeMetadataInterface
         return $this->serializedName;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function addEmbedProperty(string $property)
+    public function isEmbedded(): bool
     {
-        if (!isset($this->embedProperties[$property])) {
-            $this->embedProperties[$property] = true;
-        }
+        return $this->embedded;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getEmbedProperties(): ?array
+    public function setEmbedded(bool $isEmbedded)
     {
-        return $this->embedProperties;
+        $this->embedded = $isEmbedded;
     }
 
     /**
@@ -159,9 +151,7 @@ class AttributeMetadata implements AttributeMetadataInterface
             $this->serializedName = $attributeMetadata->getSerializedName();
         }
 
-        foreach (\array_keys($attributeMetadata->getEmbedProperties()) as $property) {
-            $this->addEmbedProperty($property);
-        }
+        $this->setEmbedded($attributeMetadata->isEmbedded());
     }
 
     /**
@@ -171,6 +161,6 @@ class AttributeMetadata implements AttributeMetadataInterface
      */
     public function __sleep()
     {
-        return ['name', 'groups', 'maxDepth', 'serializedName', 'embedProperties'];
+        return ['name', 'groups', 'maxDepth', 'serializedName', 'embedded'];
     }
 }

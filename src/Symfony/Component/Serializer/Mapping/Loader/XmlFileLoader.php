@@ -70,8 +70,8 @@ class XmlFileLoader extends FileLoader
                     $attributeMetadata->setSerializedName((string) $attribute['serialized-name']);
                 }
 
-                foreach ($attribute->{'embed-property'} as $embedProperty) {
-                    $attributeMetadata->addEmbedProperty((string) $embedProperty);
+                if (filter_var($attribute['embedded'], \FILTER_VALIDATE_BOOLEAN) === true) {
+                    $attributeMetadata->setEmbedded(true);
                 }
             }
 
