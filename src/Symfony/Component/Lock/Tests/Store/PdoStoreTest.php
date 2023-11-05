@@ -27,7 +27,7 @@ class PdoStoreTest extends AbstractStoreTestCase
 {
     use ExpiringStoreTestTrait;
 
-    protected static $dbFile;
+    protected static string $dbFile;
 
     public static function setUpBeforeClass(): void
     {
@@ -42,7 +42,7 @@ class PdoStoreTest extends AbstractStoreTestCase
         @unlink(self::$dbFile);
     }
 
-    protected function getClockDelay()
+    protected function getClockDelay(): int
     {
         return 1000000;
     }

@@ -19,8 +19,10 @@ use Symfony\Component\Messenger\Envelope;
  *
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
-class DelayedMessageHandlingException extends RuntimeException
+class DelayedMessageHandlingException extends RuntimeException implements WrappedExceptionsInterface
 {
+    use WrappedExceptionsTrait;
+
     private array $exceptions;
     private ?Envelope $envelope;
 
@@ -41,12 +43,7 @@ class DelayedMessageHandlingException extends RuntimeException
 
         $this->exceptions = $exceptions;
 
-        parent::__construct($message, 0, $exceptions[0]);
-    }
-
-    public function getExceptions(): array
-    {
-        return $this->exceptions;
+        parent::__construct($message, 0, $exceptions[array_key_first($exceptions)]);
     }
 
     public function getEnvelope(): ?Envelope

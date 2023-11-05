@@ -30,7 +30,6 @@ class PeriodicalTriggerTest extends TestCase
         if ($optimizable) {
             // test that we are using the fast algorithm for short period of time
             $p = new \ReflectionProperty($trigger, 'intervalInSeconds');
-            $p->setAccessible(true);
             $this->assertNotSame(0, $p->getValue($trigger));
         }
     }
@@ -74,6 +73,8 @@ class PeriodicalTriggerTest extends TestCase
         yield ['3600.5'];
         yield ['-3600'];
         yield [-3600];
+        yield ['0'];
+        yield [0];
     }
 
     /**
@@ -97,10 +98,7 @@ class PeriodicalTriggerTest extends TestCase
         yield ['every 2 hours', new PeriodicalTrigger('2 hours', $from, $until)];
         yield ['every 2 seconds', new PeriodicalTrigger(new \DateInterval('PT2S'), $from, $until)];
         yield ['DateInterval', new PeriodicalTrigger(new \DateInterval('P1D'), $from, $until)];
-
-        if (\PHP_VERSION_ID >= 80200) {
-            yield ['last day of next month', new PeriodicalTrigger(\DateInterval::createFromDateString('last day of next month'), $from, $until)];
-        }
+        yield ['last day of next month', new PeriodicalTrigger(\DateInterval::createFromDateString('last day of next month'), $from, $until)];
     }
 
     /**
@@ -185,7 +183,7 @@ class PeriodicalTriggerTest extends TestCase
         yield [
             $trigger,
             new \DateTimeImmutable('2020-02-20T01:59:00+02:00'),
-            new \DateTimeImmutable('2020-02-20T02:09:00+02:00'),
+            new \DateTimeImmutable('2020-02-20T02:00:00+02:00'),
         ];
         yield [
             $trigger,

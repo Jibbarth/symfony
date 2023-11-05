@@ -94,10 +94,6 @@ class VarExporterTest extends TestCase
         $dump = str_replace(var_export(__FILE__, true), "\\dirname(__DIR__).\\DIRECTORY_SEPARATOR.'VarExporterTest.php'", $dump);
 
         $fixtureFile = __DIR__.'/Fixtures/'.$testName.'.php';
-
-        if (\PHP_VERSION_ID < 80200 && 'datetime' === $testName) {
-            $fixtureFile = __DIR__.'/Fixtures/'.$testName.'-legacy.php';
-        }
         $this->assertStringEqualsFile($fixtureFile, $dump);
 
         if ('incomplete-class' === $testName || 'external-references' === $testName) {
@@ -127,7 +123,7 @@ class VarExporterTest extends TestCase
             \DateTime::createFromFormat('U', 0),
             \DateTimeImmutable::createFromFormat('U', 0),
             $tz = new \DateTimeZone('Europe/Paris'),
-            $interval = ($start = new \DateTime('2009-10-11', $tz))->diff(new \DateTime('2009-10-18', $tz)),
+            $interval = ($start = new \DateTimeImmutable('2009-10-11', $tz))->diff(new \DateTimeImmutable('2009-10-18', $tz)),
             new \DatePeriod($start, $interval, 4),
         ]];
 
@@ -259,7 +255,7 @@ class MyWakeup
         return ['sub', 'baz'];
     }
 
-    public function __wakeup()
+    public function __wakeup(): void
     {
         if (123 === $this->sub) {
             $this->bis = 123;
@@ -411,7 +407,7 @@ class Php74Serializable implements \Serializable
         return [$this->foo = new \stdClass()];
     }
 
-    public function __unserialize(array $data)
+    public function __unserialize(array $data): void
     {
         [$this->foo] = $data;
     }
@@ -421,7 +417,7 @@ class Php74Serializable implements \Serializable
         throw new \BadMethodCallException();
     }
 
-    public function __wakeup()
+    public function __wakeup(): void
     {
         throw new \BadMethodCallException();
     }

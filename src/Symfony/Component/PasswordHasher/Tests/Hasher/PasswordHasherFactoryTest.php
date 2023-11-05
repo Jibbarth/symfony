@@ -232,10 +232,6 @@ class SomeUser implements PasswordAuthenticatedUserInterface
     {
     }
 
-    public function getUsername(): string
-    {
-    }
-
     public function getUserIdentifier(): string
     {
     }
@@ -251,7 +247,7 @@ class SomeChildUser extends SomeUser
 
 class HasherAwareUser extends SomeUser implements PasswordHasherAwareInterface
 {
-    public $hasherName = 'hasher_name';
+    public ?string $hasherName = 'hasher_name';
 
     public function getPasswordHasherName(): ?string
     {

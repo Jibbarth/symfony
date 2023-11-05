@@ -12,7 +12,6 @@
 namespace Symfony\Component\Notifier\Bridge\Slack;
 
 use Symfony\Component\Notifier\Exception\InvalidArgumentException;
-use Symfony\Component\Notifier\Exception\LogicException;
 use Symfony\Component\Notifier\Exception\TransportException;
 use Symfony\Component\Notifier\Exception\UnsupportedMessageTypeException;
 use Symfony\Component\Notifier\Message\ChatMessage;
@@ -77,6 +76,10 @@ final class SlackTransport extends AbstractTransport
         $options['text'] = $message->getSubject();
 
         $apiMethod = $message->getOptions() instanceof UpdateMessageSlackOptions ? 'chat.update' : 'chat.postMessage';
+        if (\array_key_exists('post_at', $options)) {
+            $apiMethod = 'chat.scheduleMessage';
+        }
+
         $response = $this->client->request('POST', 'https://'.$this->getEndpoint().'/api/'.$apiMethod, [
             'json' => array_filter($options),
             'auth_bearer' => $this->accessToken,

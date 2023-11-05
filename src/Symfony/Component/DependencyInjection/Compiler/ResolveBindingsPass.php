@@ -28,14 +28,13 @@ use Symfony\Component\VarExporter\ProxyHelper;
  */
 class ResolveBindingsPass extends AbstractRecursivePass
 {
+    protected bool $skipScalars = true;
+
     private array $usedBindings = [];
     private array $unusedBindings = [];
     private array $errorMessages = [];
 
-    /**
-     * @return void
-     */
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         $this->usedBindings = $container->getRemovedBindingIds();
 

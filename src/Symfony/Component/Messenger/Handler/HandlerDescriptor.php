@@ -35,7 +35,7 @@ final class HandlerDescriptor
         if (str_contains($r->name, '{closure}')) {
             $this->name = 'Closure';
         } elseif (!$handler = $r->getClosureThis()) {
-            $class = \PHP_VERSION_ID >= 80111 ? $r->getClosureCalledClass() : $r->getClosureScopeClass();
+            $class = $r->getClosureCalledClass();
 
             $this->name = ($class ? $class->name.'::' : '').$r->name;
         } else {
@@ -72,5 +72,10 @@ final class HandlerDescriptor
     public function getOption(string $option): mixed
     {
         return $this->options[$option] ?? null;
+    }
+
+    public function getOptions(): array
+    {
+        return $this->options;
     }
 }

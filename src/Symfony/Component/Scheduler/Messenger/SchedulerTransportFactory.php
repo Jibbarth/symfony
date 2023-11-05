@@ -21,7 +21,7 @@ use Symfony\Component\Scheduler\Generator\MessageGenerator;
 use Symfony\Component\Scheduler\ScheduleProviderInterface;
 
 /**
- * @experimental
+ * @implements TransportFactoryInterface<SchedulerTransport>
  */
 class SchedulerTransportFactory implements TransportFactoryInterface
 {

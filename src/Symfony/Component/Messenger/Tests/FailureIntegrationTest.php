@@ -444,7 +444,7 @@ class FailureIntegrationTest extends TestCase
 
 class DummyFailureTestSenderAndReceiver implements ReceiverInterface, SenderInterface
 {
-    private $messagesWaiting = [];
+    private array $messagesWaiting = [];
 
     public function get(): iterable
     {
@@ -483,8 +483,8 @@ class DummyFailureTestSenderAndReceiver implements ReceiverInterface, SenderInte
 
 class DummyTestHandler
 {
-    private $timesCalled = 0;
-    private $shouldThrow;
+    private int $timesCalled = 0;
+    private bool $shouldThrow;
 
     public function __construct(bool $shouldThrow)
     {

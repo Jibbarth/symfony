@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Form\Tests\Extension\Core\Type;
 
+use Symfony\Component\Form\Exception\LogicException;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 
@@ -18,7 +19,7 @@ class DateTimeTypeTest extends BaseTypeTestCase
 {
     public const TESTED_TYPE = 'Symfony\Component\Form\Extension\Core\Type\DateTimeType';
 
-    private $defaultLocale;
+    private string $defaultLocale;
 
     protected function setUp(): void
     {
@@ -154,7 +155,7 @@ class DateTimeTypeTest extends BaseTypeTestCase
             'with_minutes' => false,
         ]);
 
-        $form->setData(new \DateTime());
+        $form->setData(new \DateTime('now', new \DateTimeZone('UTC')));
 
         $input = [
             'date' => [
@@ -184,7 +185,7 @@ class DateTimeTypeTest extends BaseTypeTestCase
             'with_seconds' => true,
         ]);
 
-        $form->setData(new \DateTime());
+        $form->setData(new \DateTime('now', new \DateTimeZone('UTC')));
 
         $input = [
             'date' => [
@@ -746,6 +747,27 @@ class DateTimeTypeTest extends BaseTypeTestCase
         $form->submit('2018-01-14T21:29:00');
 
         $this->assertSame('14/01/2018 21:29:00 +00:00', $form->getData());
+    }
+
+    public function testDateTimeInputTimezoneNotMatchingModelTimezone()
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Using a "DateTime" instance with a timezone ("UTC") not matching the configured model timezone "Europe/Berlin" is not supported.');
+
+        $this->factory->create(static::TESTED_TYPE, new \DateTime('now', new \DateTimeZone('UTC')), [
+            'model_timezone' => 'Europe/Berlin',
+        ]);
+    }
+
+    public function testDateTimeImmutableInputTimezoneNotMatchingModelTimezone()
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Using a "DateTimeImmutable" instance with a timezone ("UTC") not matching the configured model timezone "Europe/Berlin" is not supported.');
+
+        $this->factory->create(static::TESTED_TYPE, new \DateTimeImmutable('now', new \DateTimeZone('UTC')), [
+            'input' => 'datetime_immutable',
+            'model_timezone' => 'Europe/Berlin',
+        ]);
     }
 
     protected function getTestOptions(): array

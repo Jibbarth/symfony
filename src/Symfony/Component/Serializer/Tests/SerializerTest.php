@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Serializer\Tests;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
@@ -30,7 +29,7 @@ use Symfony\Component\Serializer\Mapping\ClassMetadata;
 use Symfony\Component\Serializer\Mapping\ClassMetadataInterface;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
-use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
+use Symfony\Component\Serializer\Mapping\Loader\AttributeLoader;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
@@ -40,16 +39,18 @@ use Symfony\Component\Serializer\Normalizer\DataUriNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeZoneNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Normalizer\UidNormalizer;
 use Symfony\Component\Serializer\Normalizer\UnwrappingDenormalizer;
 use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Tests\Fixtures\Annotations\AbstractDummy;
-use Symfony\Component\Serializer\Tests\Fixtures\Annotations\AbstractDummyFirstChild;
-use Symfony\Component\Serializer\Tests\Fixtures\Annotations\AbstractDummySecondChild;
+use Symfony\Component\Serializer\Tests\Fixtures\Attributes\AbstractDummy;
+use Symfony\Component\Serializer\Tests\Fixtures\Attributes\AbstractDummyFirstChild;
+use Symfony\Component\Serializer\Tests\Fixtures\Attributes\AbstractDummySecondChild;
 use Symfony\Component\Serializer\Tests\Fixtures\DenormalizableDummy;
 use Symfony\Component\Serializer\Tests\Fixtures\DummyFirstChildQuux;
 use Symfony\Component\Serializer\Tests\Fixtures\DummyMessageInterface;
@@ -67,8 +68,6 @@ use Symfony\Component\Serializer\Tests\Fixtures\Php74Full;
 use Symfony\Component\Serializer\Tests\Fixtures\Php80WithPromotedTypedConstructor;
 use Symfony\Component\Serializer\Tests\Fixtures\TraversableDummy;
 use Symfony\Component\Serializer\Tests\Fixtures\TrueBuiltInDummy;
-use Symfony\Component\Serializer\Tests\Fixtures\UpcomingDenormalizerInterface as DenormalizerInterface;
-use Symfony\Component\Serializer\Tests\Fixtures\UpcomingNormalizerInterface as NormalizerInterface;
 use Symfony\Component\Serializer\Tests\Fixtures\WithTypedConstructor;
 use Symfony\Component\Serializer\Tests\Normalizer\TestDenormalizer;
 use Symfony\Component\Serializer\Tests\Normalizer\TestNormalizer;
@@ -94,7 +93,7 @@ class SerializerTest extends TestCase
     public function testNormalizeNoMatch()
     {
         $this->expectException(UnexpectedValueException::class);
-        $serializer = new Serializer([$this->createMock(CustomNormalizer::class)]);
+        $serializer = new Serializer([$this->createMock(NormalizerInterface::class)]);
         $serializer->normalize(new \stdClass(), 'xml');
     }
 
@@ -122,7 +121,7 @@ class SerializerTest extends TestCase
     public function testDenormalizeNoMatch()
     {
         $this->expectException(UnexpectedValueException::class);
-        $serializer = new Serializer([$this->createMock(CustomNormalizer::class)]);
+        $serializer = new Serializer([$this->createMock(NormalizerInterface::class)]);
         $serializer->denormalize('foo', 'stdClass');
     }
 
@@ -752,7 +751,7 @@ class SerializerTest extends TestCase
 
     public function testUnionTypeDeserializable()
     {
-        $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
+        $classMetadataFactory = new ClassMetadataFactory(new AttributeLoader());
         $extractor = new PropertyInfoExtractor([], [new PhpDocExtractor(), new ReflectionExtractor()]);
         $serializer = new Serializer(
             [
@@ -763,20 +762,20 @@ class SerializerTest extends TestCase
         );
 
         $actual = $serializer->deserialize('{ "changed": null }', DummyUnionType::class, 'json', [
-            DateTimeNormalizer::FORMAT_KEY => \DateTime::ISO8601,
+            DateTimeNormalizer::FORMAT_KEY => \DateTimeinterface::ATOM,
         ]);
 
         $this->assertEquals((new DummyUnionType())->setChanged(null), $actual, 'Union type denormalization first case failed.');
 
         $actual = $serializer->deserialize('{ "changed": "2022-03-22T16:15:05+0000" }', DummyUnionType::class, 'json', [
-            DateTimeNormalizer::FORMAT_KEY => \DateTime::ISO8601,
+            DateTimeNormalizer::FORMAT_KEY => \DateTimeinterface::ATOM,
         ]);
 
-        $expectedDateTime = \DateTime::createFromFormat(\DateTime::ISO8601, '2022-03-22T16:15:05+0000');
+        $expectedDateTime = \DateTimeImmutable::createFromFormat(\DateTimeinterface::ATOM, '2022-03-22T16:15:05+0000');
         $this->assertEquals((new DummyUnionType())->setChanged($expectedDateTime), $actual, 'Union type denormalization second case failed.');
 
         $actual = $serializer->deserialize('{ "changed": false }', DummyUnionType::class, 'json', [
-            DateTimeNormalizer::FORMAT_KEY => \DateTime::ISO8601,
+            DateTimeNormalizer::FORMAT_KEY => \DateTimeinterface::ATOM,
         ]);
 
         $this->assertEquals(new DummyUnionType(), $actual, 'Union type denormalization third case failed.');
@@ -784,7 +783,7 @@ class SerializerTest extends TestCase
 
     public function testUnionTypeDeserializableWithoutAllowedExtraAttributes()
     {
-        $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
+        $classMetadataFactory = new ClassMetadataFactory(new AttributeLoader());
         $extractor = new PropertyInfoExtractor([], [new PhpDocExtractor(), new ReflectionExtractor()]);
         $serializer = new Serializer(
             [
@@ -817,9 +816,6 @@ class SerializerTest extends TestCase
         ]);
     }
 
-    /**
-     * @requires PHP 8.2
-     */
     public function testFalseBuiltInTypes()
     {
         $extractor = new PropertyInfoExtractor([], [new ReflectionExtractor()]);
@@ -830,9 +826,6 @@ class SerializerTest extends TestCase
         $this->assertEquals(new FalseBuiltInDummy(), $actual);
     }
 
-    /**
-     * @requires PHP 8.2
-     */
     public function testTrueBuiltInTypes()
     {
         $extractor = new PropertyInfoExtractor([], [new ReflectionExtractor()]);
@@ -845,7 +838,7 @@ class SerializerTest extends TestCase
 
     private function serializerWithClassDiscriminator()
     {
-        $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
+        $classMetadataFactory = new ClassMetadataFactory(new AttributeLoader());
 
         return new Serializer([new ObjectNormalizer($classMetadataFactory, null, null, new ReflectionExtractor(), new ClassDiscriminatorFromClassMetadata($classMetadataFactory))], ['json' => new JsonEncoder()]);
     }
@@ -1331,7 +1324,7 @@ class SerializerTest extends TestCase
 
     public function testCollectDenormalizationErrorsWithWrongPropertyWithoutConstruct()
     {
-        $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader());
+        $classMetadataFactory = new ClassMetadataFactory(new AttributeLoader());
         $reflectionExtractor = new ReflectionExtractor();
         $propertyInfoExtractor = new PropertyInfoExtractor([], [$reflectionExtractor], [], [], []);
 
@@ -1390,11 +1383,33 @@ class SerializerTest extends TestCase
         }
     }
 
-    public static function provideCollectDenormalizationErrors()
+    public function testGroupsOnClassSerialization()
+    {
+        $obj = new Fixtures\Attributes\GroupClassDummy();
+        $obj->setFoo('foo');
+        $obj->setBar('bar');
+        $obj->setBaz('baz');
+
+        $serializer = new Serializer(
+            [
+                new ObjectNormalizer(),
+            ],
+            [
+                'json' => new JsonEncoder(),
+            ]
+        );
+
+        $this->assertSame(
+            '{"foo":"foo","bar":"bar","baz":"baz"}',
+            $serializer->serialize($obj, 'json', ['groups' => ['a']])
+        );
+    }
+
+    public static function provideCollectDenormalizationErrors(): array
     {
         return [
             [null],
-            [new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()))],
+            [new ClassMetadataFactory(new AttributeLoader())],
         ];
     }
 
@@ -1536,12 +1551,12 @@ class Bar
 class DummyUnionType
 {
     /**
-     * @var \DateTime|bool|null
+     * @var \DateTimeImmutable|bool|null
      */
     public $changed = false;
 
     /**
-     * @param \DateTime|bool|null
+     * @param \DateTimeImmutable|bool|null
      *
      * @return $this
      */

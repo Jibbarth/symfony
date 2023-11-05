@@ -578,15 +578,34 @@ class WorkerTest extends TestCase
 
         $this->assertSame($expectedMessages, $handler->processedMessages);
     }
+
+    public function testGcCollectCyclesIsCalledOnMessageHandle()
+    {
+        $apiMessage = new DummyMessage('API');
+
+        $receiver = new DummyReceiver([[new Envelope($apiMessage)]]);
+
+        $bus = $this->createMock(MessageBusInterface::class);
+
+        $dispatcher = new EventDispatcher();
+        $dispatcher->addSubscriber(new StopWorkerOnMessageLimitListener(1));
+
+        $worker = new Worker(['transport' => $receiver], $bus, $dispatcher);
+        $worker->run();
+
+        $gcStatus = gc_status();
+
+        $this->assertGreaterThan(0, $gcStatus['runs']);
+    }
 }
 
 class DummyReceiver implements ReceiverInterface
 {
-    private $deliveriesOfEnvelopes;
-    private $acknowledgedEnvelopes;
-    private $rejectedEnvelopes;
-    private $acknowledgeCount = 0;
-    private $rejectCount = 0;
+    private array $deliveriesOfEnvelopes;
+    private array $acknowledgedEnvelopes = [];
+    private array $rejectedEnvelopes = [];
+    private int $acknowledgeCount = 0;
+    private int $rejectCount = 0;
 
     /**
      * @param Envelope[][] $deliveriesOfEnvelopes
@@ -643,7 +662,7 @@ class DummyBatchHandler implements BatchHandlerInterface
 {
     use BatchHandlerTrait;
 
-    public $processedMessages;
+    public array $processedMessages;
 
     public function __invoke(DummyMessage $message, Acknowledger $ack = null)
     {
@@ -667,7 +686,7 @@ class DummyBatchHandler implements BatchHandlerInterface
 
 class ResettableDummyReceiver extends DummyReceiver implements ResetInterface
 {
-    private $hasBeenReset = false;
+    private bool $hasBeenReset = false;
 
     public function reset(): void
     {

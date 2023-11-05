@@ -37,16 +37,14 @@ class Connection extends AbstractConnection
     ];
 
     private bool $bound = false;
-
-    /** @var resource|LDAPConnection */
-    private $connection;
+    private ?LDAPConnection $connection = null;
 
     public function __sleep(): array
     {
         throw new \BadMethodCallException('Cannot serialize '.__CLASS__);
     }
 
-    public function __wakeup()
+    public function __wakeup(): void
     {
         throw new \BadMethodCallException('Cannot unserialize '.__CLASS__);
     }
@@ -63,10 +61,8 @@ class Connection extends AbstractConnection
 
     /**
      * @param string $password WARNING: When the LDAP server allows unauthenticated binds, a blank $password will always be valid
-     *
-     * @return void
      */
-    public function bind(string $dn = null, #[\SensitiveParameter] string $password = null)
+    public function bind(string $dn = null, #[\SensitiveParameter] string $password = null): void
     {
         if (!$this->connection) {
             $this->connect();
@@ -89,29 +85,21 @@ class Connection extends AbstractConnection
     }
 
     /**
-     * @return resource|LDAPConnection
-     *
      * @internal
      */
-    public function getResource()
+    public function getResource(): ?LDAPConnection
     {
         return $this->connection;
     }
 
-    /**
-     * @return void
-     */
-    public function setOption(string $name, array|string|int|bool $value)
+    public function setOption(string $name, array|string|int|bool $value): void
     {
         if (!@ldap_set_option($this->connection, ConnectionOptions::getOption($name), $value)) {
             throw new LdapException(sprintf('Could not set value "%s" for option "%s".', $value, $name));
         }
     }
 
-    /**
-     * @return array|string|int|null
-     */
-    public function getOption(string $name)
+    public function getOption(string $name): array|string|int|null
     {
         if (!@ldap_get_option($this->connection, ConnectionOptions::getOption($name), $ret)) {
             throw new LdapException(sprintf('Could not retrieve value for option "%s".', $name));
@@ -120,10 +108,7 @@ class Connection extends AbstractConnection
         return $ret;
     }
 
-    /**
-     * @return void
-     */
-    protected function configureOptions(OptionsResolver $resolver)
+    protected function configureOptions(OptionsResolver $resolver): void
     {
         parent::configureOptions($resolver);
 

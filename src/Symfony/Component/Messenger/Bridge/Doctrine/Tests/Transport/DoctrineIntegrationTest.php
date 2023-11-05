@@ -13,8 +13,6 @@ namespace Symfony\Component\Messenger\Bridge\Doctrine\Tests\Transport;
 
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Result;
-use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\DefaultSchemaManagerFactory;
 use Doctrine\DBAL\Tools\DsnParser;
 use PHPUnit\Framework\TestCase;
@@ -26,19 +24,15 @@ use Symfony\Component\Messenger\Bridge\Doctrine\Transport\Connection;
  */
 class DoctrineIntegrationTest extends TestCase
 {
-    /** @var \Doctrine\DBAL\Connection */
-    private $driverConnection;
-    /** @var Connection */
-    private $connection;
+    private \Doctrine\DBAL\Connection $driverConnection;
+    private Connection $connection;
 
     protected function setUp(): void
     {
         $dsn = getenv('MESSENGER_DOCTRINE_DSN') ?: 'pdo-sqlite://:memory:';
-        $params = class_exists(DsnParser::class) ? (new DsnParser())->parse($dsn) : ['url' => $dsn];
+        $params = (new DsnParser())->parse($dsn);
         $config = new Configuration();
-        if (class_exists(DefaultSchemaManagerFactory::class)) {
-            $config->setSchemaManagerFactory(new DefaultSchemaManagerFactory());
-        }
+        $config->setSchemaManagerFactory(new DefaultSchemaManagerFactory());
 
         $this->driverConnection = DriverManager::getConnection($params, $config);
         $this->connection = new Connection([], $this->driverConnection);
@@ -61,18 +55,16 @@ class DoctrineIntegrationTest extends TestCase
     {
         $this->connection->send('{"message": "Hi i am delayed"}', ['type' => DummyMessage::class], 600000);
 
-        $stmt = $this->driverConnection->createQueryBuilder()
+        $qb = $this->driverConnection->createQueryBuilder()
             ->select('m.available_at')
             ->from('messenger_messages', 'm')
             ->where('m.body = :body')
             ->setParameter('body', '{"message": "Hi i am delayed"}');
-        if (method_exists($stmt, 'executeQuery')) {
-            $stmt = $stmt->executeQuery();
-        } else {
-            $stmt = $stmt->execute();
-        }
 
-        $available_at = new \DateTimeImmutable($stmt instanceof Result ? $stmt->fetchOne() : $stmt->fetchColumn());
+        // DBAL 2 compatibility
+        $result = method_exists($qb, 'executeQuery') ? $qb->executeQuery() : $qb->execute();
+
+        $available_at = new \DateTimeImmutable($result->fetchOne());
 
         $now = new \DateTimeImmutable('now + 60 seconds');
         $this->assertGreaterThan($now, $available_at);
@@ -180,7 +172,7 @@ class DoctrineIntegrationTest extends TestCase
 
     public function testTheTransportIsSetupOnGet()
     {
-        $this->assertFalse($this->createSchemaManager()->tablesExist(['messenger_messages']));
+        $this->assertFalse($this->driverConnection->createSchemaManager()->tablesExist(['messenger_messages']));
         $this->assertNull($this->connection->get());
 
         $this->connection->send('the body', ['my' => 'header']);
@@ -188,15 +180,8 @@ class DoctrineIntegrationTest extends TestCase
         $this->assertEquals('the body', $envelope['body']);
     }
 
-    private function formatDateTime(\DateTimeImmutable $dateTime)
+    private function formatDateTime(\DateTimeImmutable $dateTime): string
     {
         return $dateTime->format($this->driverConnection->getDatabasePlatform()->getDateTimeFormatString());
-    }
-
-    private function createSchemaManager(): AbstractSchemaManager
-    {
-        return method_exists($this->driverConnection, 'createSchemaManager')
-            ? $this->driverConnection->createSchemaManager()
-            : $this->driverConnection->getSchemaManager();
     }
 }

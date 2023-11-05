@@ -1,6 +1,19 @@
 CHANGELOG
 =========
 
+7.0
+---
+
+ * Remove implementing `Http\Message\RequestFactory` from `HttplugClient`
+
+6.4
+---
+
+ * Add `HarFileResponseFactory` testing utility, allow to replay responses from `.har` files
+ * Add `max_retries` option to `RetryableHttpClient` to adjust the retry logic on a per request level
+ * Add `PingWehookMessage` and `PingWebhookMessageHandler`
+ * Enable using EventSourceHttpClient::connect() for both GET and POST
+
 6.3
 ---
 

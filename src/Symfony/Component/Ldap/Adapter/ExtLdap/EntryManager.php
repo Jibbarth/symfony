@@ -24,17 +24,15 @@ use Symfony\Component\Ldap\Exception\UpdateOperationException;
  */
 class EntryManager implements EntryManagerInterface
 {
-    private Connection $connection;
-
-    public function __construct(Connection $connection)
-    {
-        $this->connection = $connection;
+    public function __construct(
+        private Connection $connection,
+    ) {
     }
 
     /**
      * @return $this
      */
-    public function add(Entry $entry)
+    public function add(Entry $entry): static
     {
         $con = $this->getConnectionResource();
 
@@ -48,7 +46,7 @@ class EntryManager implements EntryManagerInterface
     /**
      * @return $this
      */
-    public function update(Entry $entry)
+    public function update(Entry $entry): static
     {
         $con = $this->getConnectionResource();
 
@@ -62,7 +60,7 @@ class EntryManager implements EntryManagerInterface
     /**
      * @return $this
      */
-    public function remove(Entry $entry)
+    public function remove(Entry $entry): static
     {
         $con = $this->getConnectionResource();
 
@@ -81,7 +79,7 @@ class EntryManager implements EntryManagerInterface
      * @throws NotBoundException
      * @throws LdapException
      */
-    public function addAttributeValues(Entry $entry, string $attribute, array $values)
+    public function addAttributeValues(Entry $entry, string $attribute, array $values): static
     {
         $con = $this->getConnectionResource();
 
@@ -100,7 +98,7 @@ class EntryManager implements EntryManagerInterface
      * @throws NotBoundException
      * @throws LdapException
      */
-    public function removeAttributeValues(Entry $entry, string $attribute, array $values)
+    public function removeAttributeValues(Entry $entry, string $attribute, array $values): static
     {
         $con = $this->getConnectionResource();
 
@@ -114,7 +112,7 @@ class EntryManager implements EntryManagerInterface
     /**
      * @return $this
      */
-    public function rename(Entry $entry, string $newRdn, bool $removeOldRdn = true)
+    public function rename(Entry $entry, string $newRdn, bool $removeOldRdn = true): static
     {
         $con = $this->getConnectionResource();
 
@@ -133,10 +131,10 @@ class EntryManager implements EntryManagerInterface
      * @throws NotBoundException if the connection has not been previously bound
      * @throws LdapException     if an error is thrown during the rename operation
      */
-    public function move(Entry $entry, string $newParent)
+    public function move(Entry $entry, string $newParent): static
     {
-        $con = $this->getConnectionResource();
         $rdn = $this->parseRdnFromEntry($entry);
+        $con = $this->getConnectionResource();
         // deleteOldRdn does not matter here, since the Rdn will not be changing in the move.
         if (!@ldap_rename($con, $entry->getDn(), $rdn, $newParent, true)) {
             throw new LdapException(sprintf('Could not move entry "%s" to "%s": ', $entry->getDn(), $newParent).ldap_error($con), ldap_errno($con));
@@ -147,10 +145,8 @@ class EntryManager implements EntryManagerInterface
 
     /**
      * Get the connection resource, but first check if the connection is bound.
-     *
-     * @return resource|LDAPConnection
      */
-    private function getConnectionResource()
+    private function getConnectionResource(): LDAPConnection
     {
         // If the connection is not bound, throw an exception. Users should use an explicit bind call first.
         if (!$this->connection->isBound()) {
@@ -167,7 +163,7 @@ class EntryManager implements EntryManagerInterface
      *
      * @throws UpdateOperationException in case of an error
      */
-    public function applyOperations(string $dn, iterable $operations)
+    public function applyOperations(string $dn, iterable $operations): static
     {
         $operationsMapped = [];
         foreach ($operations as $modification) {

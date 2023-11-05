@@ -30,14 +30,9 @@ abstract class AbstractOperation implements OperationInterface
     public const NEW_BATCH = 'new';
     public const ALL_BATCH = 'all';
 
-    protected $source;
-    protected $target;
-    protected $result;
-
-    /**
-     * @var array|null The domains affected by this operation
-     */
-    private $domains;
+    protected MessageCatalogueInterface $source;
+    protected MessageCatalogueInterface $target;
+    protected MessageCatalogue $result;
 
     /**
      * This array stores 'all', 'new' and 'obsolete' messages for all valid domains.
@@ -60,7 +55,9 @@ abstract class AbstractOperation implements OperationInterface
      *
      * @var array The array that stores 'all', 'new' and 'obsolete' messages
      */
-    protected $messages;
+    protected array $messages;
+
+    private array $domains;
 
     /**
      * @throws LogicException
@@ -79,7 +76,7 @@ abstract class AbstractOperation implements OperationInterface
 
     public function getDomains(): array
     {
-        if (null === $this->domains) {
+        if (!isset($this->domains)) {
             $domains = [];
             foreach ([$this->source, $this->target] as $catalogue) {
                 foreach ($catalogue->getDomains() as $domain) {
@@ -183,8 +180,6 @@ abstract class AbstractOperation implements OperationInterface
      * stores the results.
      *
      * @param string $domain The domain which the operation will be performed for
-     *
-     * @return void
      */
-    abstract protected function processDomain(string $domain);
+    abstract protected function processDomain(string $domain): void;
 }

@@ -66,9 +66,6 @@ return static function (ContainerConfigurator $container) {
             ->tag('container.preload', ['class' => ExtensionSet::class])
             ->tag('container.preload', ['class' => Template::class])
             ->tag('container.preload', ['class' => TemplateWrapper::class])
-
-        ->alias('Twig_Environment', 'twig')
-            ->deprecate('symfony/twig-bundle', '6.3', 'The "%alias_id%" service alias is deprecated, use "'.Environment::class.'" or "twig" instead.')
         ->alias(Environment::class, 'twig')
 
         ->set('twig.app_variable', AppVariable::class)
@@ -77,6 +74,7 @@ return static function (ContainerConfigurator $container) {
             ->call('setTokenStorage', [service('security.token_storage')->ignoreOnInvalid()])
             ->call('setRequestStack', [service('request_stack')->ignoreOnInvalid()])
             ->call('setLocaleSwitcher', [service('translation.locale_switcher')->ignoreOnInvalid()])
+            ->call('setEnabledLocales', [param('kernel.enabled_locales')])
 
         ->set('twig.template_iterator', TemplateIterator::class)
             ->args([service('kernel'), abstract_arg('Twig paths'), param('twig.default_path'), abstract_arg('File name pattern')])
@@ -143,7 +141,7 @@ return static function (ContainerConfigurator $container) {
             ->tag('translation.extractor', ['alias' => 'twig'])
 
         ->set('workflow.twig_extension', WorkflowExtension::class)
-            ->args([service('.workflow.registry')])
+            ->args([service('workflow.registry')])
 
         ->set('twig.configurator.environment', EnvironmentConfigurator::class)
             ->args([

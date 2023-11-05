@@ -170,10 +170,10 @@ class ExpressionLanguageTest extends TestCase
 
     public static function shortCircuitProviderEvaluate()
     {
-        $object = new class(\Closure::fromCallable([static::class, 'fail'])) {
-            private $fail;
+        $object = new class(static::fail(...)) {
+            private \Closure $fail;
 
-            public function __construct(callable $fail)
+            public function __construct(\Closure $fail)
             {
                 $this->fail = $fail;
             }
@@ -269,7 +269,7 @@ class ExpressionLanguageTest extends TestCase
         $expressionLanguage = new ExpressionLanguage();
         $expression = 'foo.not in [bar]';
         $compiled = $expressionLanguage->compile($expression, ['foo', 'bar']);
-        $this->assertSame('\Symfony\Component\ExpressionLanguage\Node\BinaryNode::inArray($foo->not, [0 => $bar])', $compiled);
+        $this->assertSame('\in_array($foo->not, [0 => $bar], true)', $compiled);
 
         $result = $expressionLanguage->evaluate($expression, ['foo' => (object) ['not' => 'test'], 'bar' => 'test']);
         $this->assertTrue($result);

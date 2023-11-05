@@ -58,8 +58,7 @@ foreach ($loader->getClassMap() as $class => $file) {
         case false !== strpos($file, '/src/Symfony/Component/VarDumper/Tests/Fixtures/ReflectionIntersectionTypeFixture.php'):
         case false !== strpos($file, '/src/Symfony/Component/VarDumper/Tests/Fixtures/ReflectionUnionTypeWithIntersectionFixture.php'):
         case false !== strpos($file, '/src/Symfony/Component/VarExporter/Internal'):
-        case false !== strpos($file, '/src/Symfony/Component/VarExporter/Tests/Fixtures/LazyGhost/ReadOnlyClass.php'):
-        case false !== strpos($file, '/src/Symfony/Component/VarExporter/Tests/Fixtures/LazyProxy/ReadOnlyClass.php'):
+        case false !== strpos($file, '/src/Symfony/Component/VarExporter/Tests/Fixtures/'):
         case false !== strpos($file, '/src/Symfony/Component/Cache/Traits/RelayProxy.php'):
         case false !== strpos($file, '/src/Symfony/Contracts/Service/Test/ServiceLocatorTest.php'):
         case false !== strpos($file, '/src/Symfony/Contracts/Service/Test/ServiceLocatorTestCase.php'):
@@ -75,11 +74,13 @@ foreach ($loader->getClassMap() as $class => $file) {
     $refl = new \ReflectionClass($class);
     foreach ($refl->getMethods() as $method) {
         if (
-            !$refl->isInterface()
-            || $method->getReturnType()
+            $method->getReturnType()
             || str_contains($method->getDocComment(), '@return')
-            || str_starts_with($method->getName(), '__')
+            || '__construct' === $method->getName()
+            || '__destruct' === $method->getName()
+            || '__clone' === $method->getName()
             || $method->getDeclaringClass()->getName() !== $class
+            || str_contains($method->getDeclaringClass()->getName(), '\\Test\\')
         ) {
             continue;
         }

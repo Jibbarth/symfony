@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Security\Http\Tests\EventListener;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
@@ -31,9 +32,9 @@ use Symfony\Component\Security\Http\Tests\Fixtures\DummyAuthenticator;
 
 class PasswordMigratingListenerTest extends TestCase
 {
-    private $hasherFactory;
-    private $listener;
-    private $user;
+    private MockObject&PasswordHasherFactoryInterface $hasherFactory;
+    private PasswordMigratingListener $listener;
+    private UserInterface&PasswordAuthenticatedUserInterface $user;
 
     protected function setUp(): void
     {
@@ -171,10 +172,6 @@ class DummyTestPasswordAuthenticatedUser extends TestPasswordAuthenticatedUser
     }
 
     public function eraseCredentials(): void
-    {
-    }
-
-    public function getUsername(): string
     {
     }
 

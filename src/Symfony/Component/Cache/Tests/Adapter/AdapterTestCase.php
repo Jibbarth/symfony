@@ -72,7 +72,7 @@ abstract class AdapterTestCase extends CachePoolTest
         $this->assertFalse($isHit);
 
         $this->assertSame($value, $cache->get('bar', new class($value) implements CallbackInterface {
-            private $value;
+            private int $value;
 
             public function __construct(int $value)
             {
@@ -356,7 +356,7 @@ abstract class AdapterTestCase extends CachePoolTest
 
 class NotUnserializable
 {
-    public function __wakeup()
+    public function __wakeup(): void
     {
         throw new \Exception(__CLASS__);
     }

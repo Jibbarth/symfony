@@ -28,8 +28,8 @@ use Symfony\Component\Messenger\Transport\Serialization\Serializer;
  */
 class RedisExtIntegrationTest extends TestCase
 {
-    private $redis;
-    private $connection;
+    private \Redis|Relay|null $redis = null;
+    private ?Connection $connection = null;
 
     protected function setUp(): void
     {
@@ -218,6 +218,35 @@ class RedisExtIntegrationTest extends TestCase
             ]),
         ], $message['data']);
         $connection->ack($message['id']);
+    }
+
+    public function testSentinel()
+    {
+        if (!$hosts = getenv('REDIS_SENTINEL_HOSTS')) {
+            $this->markTestSkipped('REDIS_SENTINEL_HOSTS env var is not defined.');
+        }
+
+        if (!getenv('MESSENGER_REDIS_SENTINEL_MASTER')) {
+            $this->markTestSkipped('MESSENGER_REDIS_SENTINEL_MASTER env var is not defined.');
+        }
+
+        $dsn = 'redis:?host['.str_replace(' ', ']&host[', $hosts).']';
+
+        $connection = Connection::fromDsn($dsn,
+            ['delete_after_ack' => true,
+             'sentinel_master' => getenv('MESSENGER_REDIS_SENTINEL_MASTER') ?: null,
+            ], $this->redis);
+
+        $connection->add('1', []);
+        $this->assertNotEmpty($message = $connection->get());
+        $this->assertSame([
+            'message' => json_encode([
+                'body' => '1',
+                'headers' => [],
+            ]),
+        ], $message['data']);
+        $connection->reject($message['id']);
+        $connection->cleanup();
     }
 
     public function testLazySentinel()

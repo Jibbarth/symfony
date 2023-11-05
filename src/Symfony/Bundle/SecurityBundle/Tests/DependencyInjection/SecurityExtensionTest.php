@@ -12,7 +12,6 @@
 namespace Symfony\Bundle\SecurityBundle\Tests\DependencyInjection;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Bridge\PhpUnit\ExpectDeprecationTrait;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\AuthenticatorFactoryInterface;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\FirewallListenerFactoryInterface;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\SecurityExtension;
@@ -37,16 +36,11 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
 use Symfony\Component\Security\Http\Authenticator\HttpBasicAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
-use Symfony\Component\Security\Http\Authenticator\Passport\PassportInterface;
 
 class SecurityExtensionTest extends TestCase
 {
-    use ExpectDeprecationTrait;
-
     public function testInvalidCheckPath()
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('The check_path "/some_area/login_check" for login method "form_login" is not matched by the firewall pattern "/secured_area/.*".');
         $container = $this->getRawContainer();
 
         $container->loadFromExtension('security', [
@@ -64,13 +58,14 @@ class SecurityExtensionTest extends TestCase
             ],
         ]);
 
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('The check_path "/some_area/login_check" for login method "form_login" is not matched by the firewall pattern "/secured_area/.*".');
+
         $container->compile();
     }
 
     public function testFirewallWithInvalidUserProvider()
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Unable to create definition for "security.user.provider.concrete.my_foo" user provider');
         $container = $this->getRawContainer();
 
         $extension = $container->getExtension('security');
@@ -88,6 +83,9 @@ class SecurityExtensionTest extends TestCase
                 ],
             ],
         ]);
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Unable to create definition for "security.user.provider.concrete.my_foo" user provider');
 
         $container->compile();
     }
@@ -161,8 +159,6 @@ class SecurityExtensionTest extends TestCase
 
     public function testMissingProviderForListener()
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('Not configuring explicitly the provider for the "http_basic" authenticator on "ambiguous" firewall is ambiguous as there is more than one registered provider.');
         $container = $this->getRawContainer();
         $container->loadFromExtension('security', [
             'providers' => [
@@ -177,6 +173,9 @@ class SecurityExtensionTest extends TestCase
                 ],
             ],
         ]);
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Not configuring explicitly the provider for the "http_basic" authenticator on "ambiguous" firewall is ambiguous as there is more than one registered provider. Set the "provider" key to one of the configured providers, even if your custom authenticators don\'t use it.');
 
         $container->compile();
     }
@@ -476,31 +475,6 @@ class SecurityExtensionTest extends TestCase
     }
 
     /**
-     * @group legacy
-     */
-    public function testFirewallWithNoUserProviderTriggerDeprecation()
-    {
-        $container = $this->getRawContainer();
-
-        $container->loadFromExtension('security', [
-            'providers' => [
-                'first' => ['id' => 'foo'],
-                'second' => ['id' => 'foo'],
-            ],
-
-            'firewalls' => [
-                'some_firewall' => [
-                    'custom_authenticator' => 'my_authenticator',
-                ],
-            ],
-        ]);
-
-        $this->expectDeprecation('Since symfony/security-bundle 5.4: Not configuring explicitly the provider for the "some_firewall" firewall is deprecated because it\'s ambiguous as there is more than one registered provider. Set the "provider" key to one of the configured providers, even if your custom authenticators don\'t use it.');
-
-        $container->compile();
-    }
-
-    /**
      * @dataProvider acceptableIpsProvider
      */
     public function testAcceptableAccessControlIps($ips)
@@ -692,9 +666,6 @@ class SecurityExtensionTest extends TestCase
      */
     public function testEntryPointRequired(array $firewall, string $messageRegex)
     {
-        $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessageMatches($messageRegex);
-
         $container = $this->getRawContainer();
         $container->loadFromExtension('security', [
             'providers' => [
@@ -705,6 +676,9 @@ class SecurityExtensionTest extends TestCase
                 'main' => $firewall,
             ],
         ]);
+
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessageMatches($messageRegex);
 
         $container->compile();
     }
@@ -888,16 +862,14 @@ class SecurityExtensionTest extends TestCase
         $this->assertFalse($container->has('security.logout.listener.clear_site_data.'.$firewallId));
     }
 
-    /**
-     * @group legacy
-     */
     public function testNothingDoneWithEmptyConfiguration()
     {
         $container = $this->getRawContainer();
 
         $container->loadFromExtension('security');
 
-        $this->expectDeprecation('Since symfony/security-bundle 6.3: Enabling bundle "Symfony\Bundle\SecurityBundle\SecurityBundle" and not configuring it is deprecated.');
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Enabling bundle "Symfony\Bundle\SecurityBundle\SecurityBundle" and not configuring it is not allowed.');
 
         $container->compile();
 
@@ -964,13 +936,6 @@ class TestAuthenticator implements AuthenticatorInterface
     }
 
     public function authenticate(Request $request): Passport
-    {
-    }
-
-    /**
-     * @internal for compatibility with Symfony 5.4
-     */
-    public function createAuthenticatedToken(PassportInterface $passport, string $firewallName): TokenInterface
     {
     }
 

@@ -23,14 +23,14 @@ use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
  */
 class ImageValidatorTest extends ConstraintValidatorTestCase
 {
-    protected $path;
-    protected $image;
-    protected $imageLandscape;
-    protected $imagePortrait;
-    protected $image4By3;
-    protected $image16By9;
-    protected $imageCorrupted;
-    protected $notAnImage;
+    protected string $path;
+    protected string $image;
+    protected string $imageLandscape;
+    protected string $imagePortrait;
+    protected string $image4By3;
+    protected string $image16By9;
+    protected string $imageCorrupted;
+    protected string $notAnImage;
 
     protected function createValidator(): ImageValidator
     {
@@ -264,66 +264,6 @@ class ImageValidatorTest extends ConstraintValidatorTestCase
         ];
     }
 
-    public function testInvalidMinWidth()
-    {
-        $this->expectException(ConstraintDefinitionException::class);
-        $constraint = new Image([
-            'minWidth' => '1abc',
-        ]);
-
-        $this->validator->validate($this->image, $constraint);
-    }
-
-    public function testInvalidMaxWidth()
-    {
-        $this->expectException(ConstraintDefinitionException::class);
-        $constraint = new Image([
-            'maxWidth' => '1abc',
-        ]);
-
-        $this->validator->validate($this->image, $constraint);
-    }
-
-    public function testInvalidMinHeight()
-    {
-        $this->expectException(ConstraintDefinitionException::class);
-        $constraint = new Image([
-            'minHeight' => '1abc',
-        ]);
-
-        $this->validator->validate($this->image, $constraint);
-    }
-
-    public function testInvalidMaxHeight()
-    {
-        $this->expectException(ConstraintDefinitionException::class);
-        $constraint = new Image([
-            'maxHeight' => '1abc',
-        ]);
-
-        $this->validator->validate($this->image, $constraint);
-    }
-
-    public function testInvalidMinPixels()
-    {
-        $this->expectException(ConstraintDefinitionException::class);
-        $constraint = new Image([
-            'minPixels' => '1abc',
-        ]);
-
-        $this->validator->validate($this->image, $constraint);
-    }
-
-    public function testInvalidMaxPixels()
-    {
-        $this->expectException(ConstraintDefinitionException::class);
-        $constraint = new Image([
-            'maxPixels' => '1abc',
-        ]);
-
-        $this->validator->validate($this->image, $constraint);
-    }
-
     /**
      * @dataProvider provideMinRatioConstraints
      */
@@ -405,26 +345,6 @@ class ImageValidatorTest extends ConstraintValidatorTestCase
         $this->validator->validate($this->image16By9, $constraint);
 
         $this->assertNoViolation();
-    }
-
-    public function testInvalidMinRatio()
-    {
-        $this->expectException(ConstraintDefinitionException::class);
-        $constraint = new Image([
-            'minRatio' => '1abc',
-        ]);
-
-        $this->validator->validate($this->image, $constraint);
-    }
-
-    public function testInvalidMaxRatio()
-    {
-        $this->expectException(ConstraintDefinitionException::class);
-        $constraint = new Image([
-            'maxRatio' => '1abc',
-        ]);
-
-        $this->validator->validate($this->image, $constraint);
     }
 
     /**
